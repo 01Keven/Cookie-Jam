@@ -19,6 +19,10 @@ public class GameManager : MonoBehaviour
     public string activeTaskID = "";
     public bool isTaskLocked = false;
 
+    [Header("Sistema de Vidas (Mãe)")]
+    public int currentLives = 3;
+    public GameObject[] heartIcons;
+
     private void Awake()
     {
         Instance = this;
@@ -28,6 +32,8 @@ public class GameManager : MonoBehaviour
     {
         lazyBar.maxValue = maxLazy;
         lazyBar.value = currentLazy;
+        currentLives = 3;
+        UpdateHeartsUI();
     }
 
     void Update()
@@ -43,6 +49,39 @@ public class GameManager : MonoBehaviour
             GameOver();
         }
     }
+
+    public void LosingLife()
+    {
+        currentLives--; // Tira uma vida
+        UpdateHeartsUI(); // Apaga um coração da tela
+
+        Debug.Log("Você foi pego pela mãe! Vidas restantes: " + currentLives);
+
+        if (currentLives <= 0)
+        {
+            GameOverForLifes();
+        }
+    }
+    private void UpdateHeartsUI()
+    {
+        // Previne erros caso você não tenha colocado as imagens no Inspector ainda
+        if (heartIcons == null || heartIcons.Length == 0) return;
+
+        for (int i = 0; i < heartIcons.Length; i++)
+        {
+            // Se o índice do coração for menor que a quantidade de vidas, ele fica ligado.
+            // Ex: Se tem 2 vidas, o heartIcons[0] e [1] ficam ativos. O [2] é desativado.
+            heartIcons[i].SetActive(i < currentLives);
+        }
+    }
+
+    private void GameOverForLifes()
+    {
+        Debug.Log("GAME OVER: A mãe confiscou o celular! Você está de castigo.");
+        // SceneManager.LoadScene("GameOverScene"); // Descomente quando criar a cena de derrota
+    }
+
+    
 
     public void ModifyLazy(float amount)
     {

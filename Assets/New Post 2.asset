@@ -15,6 +15,6 @@ MonoBehaviour:
   authorName: sadsadsadsa
   caption: dasdsadsadsadsadsadadsadasdsa
   postVisual: {fileID: 21300000, guid: 8a6a2b51862fe5d41a3ec255c45ccf17, type: 3}
-  type: 1
+  type: 2
   lazyEffectPerSecond: -5
-  taskID: WateringPlant
+  taskID: 
