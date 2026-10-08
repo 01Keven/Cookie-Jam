@@ -47,7 +47,7 @@ public class PostUI : MonoBehaviour
 
     private void UpdateLikeUI()
     {
-        heartIcon.color = isLiked ? likedColor : unlikedColor;
+        // heartIcon.color = isLiked ? likedColor : unlikedColor;
         likeCountText.text = currentLikes.ToString();
     }
 

@@ -4,141 +4,103 @@ using UnityEngine.InputSystem;
 
 public class FeedManager : MonoBehaviour
 {
-    [Header("Referências")]
-    public Transform contentContainer; 
+    [Header("Referências da UI")]
+    [Tooltip("Arraste o objeto TelaDoCelular (que tem a máscara) aqui")]
+    public RectTransform phoneScreen; 
+    
+    [Tooltip("Arraste o objeto ContentContainer aqui")]
+    public RectTransform contentContainer; 
+    
     public GameObject postPrefab;
-    
-    [Header("Dados")]
-    public List<PostData> availablePosts; 
-    
-    [Header("Configurações do Feed")]
-    public float postHeight = 800f; 
-    public float scrollSpeed = 15f; // Aumentado levemente para um snap mais rápido e moderno
 
-    [Header("Configurações de Swipe (Arrastar)")]
-    public float dragThreshold = 50f; // Distância mínima do mouse para considerar um arrasto
-    public float inputCooldown = 0.4f; // Tempo de bloqueio (em segundos) antes de poder passar de post de novo
+    [Header("Dados do Feed")]
+    public List<PostData> availablePosts;
 
-    private List<PostUI> spawnedPosts = new List<PostUI>();
+    [Header("Configurações do Swipe")]
+    public float swipeThreshold = 50f; // Distância do dedo/mouse para validar o pulo
+    public float snapSpeed = 15f; // Velocidade da transição de tela
+
     private int currentIndex = 0;
-    private float targetYPosition = 0f;
-
-    // Variáveis de controle de input
-    private float lastInputTime = 0f;
+    private float postHeight;
+    private float targetY = 0f;
+    
     private Vector2 startDragPos;
     private bool isDragging;
 
     void Start()
     {
+        // Pega a altura real da máscara do celular. 
+        // Essa será a distância exata de cada post e de cada pulo.
+        postHeight = phoneScreen.rect.height;
         GenerateFeed();
-    }
-
-    void Update()
-    {
-        HandleInput();
-        SmoothScroll();
-        ApplyEffectOfCurrentPost();
     }
 
     private void GenerateFeed()
     {
-        foreach (var data in availablePosts)
+        // Lê a largura exata da sua máscara do celular
+        float postWidth = phoneScreen.rect.width;
+
+        for (int i = 0; i < availablePosts.Count; i++)
         {
-            GameObject newPostObj = Instantiate(postPrefab, contentContainer);
-            PostUI postUI = newPostObj.GetComponent<PostUI>();
-            postUI.Setup(data);
-            spawnedPosts.Add(postUI);
-        }
-    }
+            GameObject newPost = Instantiate(postPrefab, contentContainer);
+            RectTransform rect = newPost.GetComponent<RectTransform>();
 
-    private void HandleInput()
-    {
-        // Impede que o jogador role a tela rápido demais (cooldown)
-        if (Time.time - lastInputTime < inputCooldown) return;
-
-        bool moveNext = false;
-        bool movePrev = false;
-
-        // 1. Controle por Teclado (Mantido apenas para facilitar seus testes no editor)
-        if (Keyboard.current != null)
-        {
-            if (Keyboard.current.downArrowKey.wasPressedThisFrame) moveNext = true;
-            if (Keyboard.current.upArrowKey.wasPressedThisFrame) movePrev = true;
-        }
-
-        // 2. Controle EXCLUSIVO por Arrastar (Swipe) - Rodinha do mouse removida
-        if (Mouse.current != null)
-        {
-            // Quando aperta o botão do mouse
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                startDragPos = Mouse.current.position.ReadValue();
-                isDragging = true;
-            }
+            // Força a largura e a altura absolutas, ignorando qualquer âncora bugada
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, postWidth);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, postHeight);
             
-            // Quando solta o botão do mouse
-            if (Mouse.current.leftButton.wasReleasedThisFrame && isDragging)
+            // Posiciona um post perfeitamente embaixo do outro (-i * altura)
+            rect.anchoredPosition = new Vector2(0, -i * postHeight);
+
+            // Injeta os dados
+            newPost.GetComponent<PostUI>().Setup(availablePosts[i]);
+        }
+    }
+
+    void Update()
+    {
+        HandleSwipe();
+        SnapToCurrentPost();
+    }
+
+    private void HandleSwipe()
+    {
+        if (Mouse.current == null) return;
+
+        // Quando clica/toca na tela
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            startDragPos = Mouse.current.position.ReadValue();
+            isDragging = true;
+        }
+
+        // Quando solta o clique/toque
+        if (Mouse.current.leftButton.wasReleasedThisFrame && isDragging)
+        {
+            isDragging = false;
+            float deltaY = Mouse.current.position.ReadValue().y - startDragPos.y;
+
+            // Arrastou para CIMA (deltaY positivo) -> Próximo vídeo (desce o container)
+            if (deltaY > swipeThreshold && currentIndex < availablePosts.Count - 1)
             {
-                isDragging = false;
-                Vector2 endDragPos = Mouse.current.position.ReadValue();
-                
-                // Calcula a diferença de altura entre onde clicou e onde soltou
-                float deltaY = endDragPos.y - startDragPos.y;
-
-                // No Unity, Y positivo significa que o mouse foi para CIMA.
-                if (deltaY > dragThreshold) 
-                {
-                    moveNext = true; // Arrastou para cima = Próximo post
-                }
-                else if (deltaY < -dragThreshold) 
-                {
-                    movePrev = true; // Arrastou para baixo = Post anterior
-                }
+                currentIndex++;
             }
-        }
+            // Arrastou para BAIXO (deltaY negativo) -> Vídeo anterior (sobe o container)
+            else if (deltaY < -swipeThreshold && currentIndex > 0)
+            {
+                currentIndex--;
+            }
 
-        // Executa a transição se algum comando foi validado
-        if (moveNext)
-        {
-            NextPost();
-            lastInputTime = Time.time;
-        }
-        else if (movePrev)
-        {
-            PreviousPost();
-            lastInputTime = Time.time;
+            // O novo Y alvo do container é o índice atual multiplicado pela altura da tela
+            targetY = currentIndex * postHeight;
         }
     }
 
-    public void NextPost()
+    private void SnapToCurrentPost()
     {
-        if (currentIndex < spawnedPosts.Count - 1)
-        {
-            currentIndex++;
-            targetYPosition = currentIndex * postHeight;
-        }
-    }
-
-    public void PreviousPost()
-    {
-        if (currentIndex > 0)
-        {
-            currentIndex--;
-            targetYPosition = currentIndex * postHeight;
-        }
-    }
-
-    private void SmoothScroll()
-    {
-        Vector3 newPos = contentContainer.localPosition;
-        newPos.y = Mathf.Lerp(newPos.y, targetYPosition, Time.deltaTime * scrollSpeed);
-        contentContainer.localPosition = newPos;
-    }
-
-    private void ApplyEffectOfCurrentPost()
-    {
-        if (spawnedPosts.Count == 0) return;
-        PostData currentData = spawnedPosts[currentIndex].GetData();
-        // A lógica da barra de preguiça vai aqui futuramente
+        // Move o container até travar perfeitamente no targetY
+        Vector2 currentPos = contentContainer.anchoredPosition;
+        currentPos.y = Mathf.Lerp(currentPos.y, targetY, Time.deltaTime * snapSpeed);
+        contentContainer.anchoredPosition = currentPos;
     }
 }
