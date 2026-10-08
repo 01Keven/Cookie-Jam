@@ -28,6 +28,7 @@ public class FeedManager : MonoBehaviour
     private bool isDragging;
     public bool isLocked = false; // Se o feed está travado por uma tarefa
     private HashSet<string> completedTasks = new HashSet<string>();
+    
 
     void Start()
     {
@@ -35,6 +36,7 @@ public class FeedManager : MonoBehaviour
         // Essa será a distância exata de cada post e de cada pulo.
         postHeight = phoneScreen.rect.height;
         GenerateFeed();
+        
     }
 
     private void GenerateFeed()
@@ -112,20 +114,26 @@ public class FeedManager : MonoBehaviour
 
     private void CheckCurrentPostForTask()
     {
-        // Se já está travado, não precisa checar
         if (isLocked) return;
 
         PostData currentData = availablePosts[currentIndex];
 
-        // Se for um post de tarefa E essa tarefa ainda não foi completada
+        // 1. Checa se é uma Tarefa de Mundo Real
         if (currentData.type == PostType.TaskHint && !completedTasks.Contains(currentData.taskID))
         {
             isLocked = true;
             GameManager.Instance.AtivarTarefa(currentData.taskID);
         }
+        // 2. NOVO: Checa se é um Anúncio Estressante
+        // Usamos a palavra "Ad_" + o índice numérico para criar um ID único (ex: Ad_4) e não repetir se o jogador voltar o scroll
+        else if (currentData.type == PostType.StressfulAd && !completedTasks.Contains("Ad_" + currentIndex))
+        {
+            isLocked = true;
+            AdManager.Instance.StartAdEvent("Ad_" + currentIndex);
+        }
+        // 3. Checa se é Entretenimento
         else if (currentData.type == PostType.Entertainment)
         {
-            // Se for entretenimento, diminui a barra de preguiça
             GameManager.Instance.ModifyLazy(currentData.lazyEffectPerSecond * Time.deltaTime);
         }
     }
