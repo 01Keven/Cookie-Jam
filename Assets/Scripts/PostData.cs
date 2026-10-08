@@ -18,4 +18,5 @@ public class PostData : ScriptableObject
     
     [Tooltip("Quanto esse post altera a barra de preguiça por segundo enquanto é assistido")]
     public float lazyEffectPerSecond = -5f; 
+    public string taskID;
 }

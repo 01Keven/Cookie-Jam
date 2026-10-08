@@ -26,6 +26,8 @@ public class FeedManager : MonoBehaviour
     
     private Vector2 startDragPos;
     private bool isDragging;
+    public bool isLocked = false; // Se o feed está travado por uma tarefa
+    private HashSet<string> completedTasks = new HashSet<string>();
 
     void Start()
     {
@@ -57,14 +59,11 @@ public class FeedManager : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        HandleSwipe();
-        SnapToCurrentPost();
-    }
 
     private void HandleSwipe()
     {
+        if (isLocked) return; // Se o feed estiver travado, não permite swipe
+
         if (Mouse.current == null) return;
 
         // Quando clica/toca na tela
@@ -102,5 +101,38 @@ public class FeedManager : MonoBehaviour
         Vector2 currentPos = contentContainer.anchoredPosition;
         currentPos.y = Mathf.Lerp(currentPos.y, targetY, Time.deltaTime * snapSpeed);
         contentContainer.anchoredPosition = currentPos;
+    }
+
+    void Update()
+    {
+        HandleSwipe();
+        SnapToCurrentPost();
+        CheckCurrentPostForTask();
+    }
+
+    private void CheckCurrentPostForTask()
+    {
+        // Se já está travado, não precisa checar
+        if (isLocked) return;
+
+        PostData currentData = availablePosts[currentIndex];
+
+        // Se for um post de tarefa E essa tarefa ainda não foi completada
+        if (currentData.type == PostType.TaskHint && !completedTasks.Contains(currentData.taskID))
+        {
+            isLocked = true;
+            GameManager.Instance.AtivarTarefa(currentData.taskID);
+        }
+        else if (currentData.type == PostType.Entertainment)
+        {
+            // Se for entretenimento, diminui a barra de preguiça
+            GameManager.Instance.ModifyLazy(currentData.lazyEffectPerSecond * Time.deltaTime);
+        }
+    }
+
+    public void DestravarFeed(string taskID)
+    {
+        completedTasks.Add(taskID);
+        isLocked = false;
     }
 }
