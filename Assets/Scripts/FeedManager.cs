@@ -27,6 +27,8 @@ public class FeedManager : MonoBehaviour
     private Vector2 startDragPos;
     private bool isDragging;
     public bool isLocked = false; // Se o feed está travado por uma tarefa
+    public float autoScrollTime = 5f; 
+    private float timeOnCurrentPost = 0f;
     private HashSet<string> completedTasks = new HashSet<string>();
     
 
@@ -64,36 +66,40 @@ public class FeedManager : MonoBehaviour
 
     private void HandleSwipe()
     {
-        if (isLocked) return; // Se o feed estiver travado, não permite swipe
+        if (isLocked) return;
 
         if (Mouse.current == null) return;
 
-        // Quando clica/toca na tela
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             startDragPos = Mouse.current.position.ReadValue();
             isDragging = true;
         }
 
-        // Quando solta o clique/toque
         if (Mouse.current.leftButton.wasReleasedThisFrame && isDragging)
         {
             isDragging = false;
             float deltaY = Mouse.current.position.ReadValue().y - startDragPos.y;
 
-            // Arrastou para CIMA (deltaY positivo) -> Próximo vídeo (desce o container)
+            bool mudouDePost = false; // Variável para saber se ele realmente rolou a tela
+
             if (deltaY > swipeThreshold && currentIndex < availablePosts.Count - 1)
             {
                 currentIndex++;
+                mudouDePost = true;
             }
-            // Arrastou para BAIXO (deltaY negativo) -> Vídeo anterior (sobe o container)
             else if (deltaY < -swipeThreshold && currentIndex > 0)
             {
                 currentIndex--;
+                mudouDePost = true;
             }
 
-            // O novo Y alvo do container é o índice atual multiplicado pela altura da tela
-            targetY = currentIndex * postHeight;
+            // Se o jogador rolou a tela com sucesso, atualiza o alvo e zera o tempo
+            if (mudouDePost)
+            {
+                targetY = currentIndex * postHeight;
+                timeOnCurrentPost = 0f; 
+            }
         }
     }
 
@@ -110,6 +116,7 @@ public class FeedManager : MonoBehaviour
         HandleSwipe();
         SnapToCurrentPost();
         CheckCurrentPostForTask();
+        HandleAutoScroll(); // Chama a nova função aqui
     }
 
     private void CheckCurrentPostForTask()
@@ -142,5 +149,29 @@ public class FeedManager : MonoBehaviour
     {
         completedTasks.Add(taskID);
         isLocked = false;
+        
+        // Zera o tempo logo após completar uma tarefa, 
+        // para que o feed não pule sozinho instantaneamente
+        timeOnCurrentPost = 0f; 
+    }
+
+    private void HandleAutoScroll()
+    {
+        // Se o feed estiver travado (Tarefa ou Ad), o cronômetro pausa para ser justo com o player
+        if (isLocked) return;
+
+        timeOnCurrentPost += Time.deltaTime;
+
+        if (timeOnCurrentPost >= autoScrollTime)
+        {
+            // Verifica se não estamos no último post do feed
+            if (currentIndex < availablePosts.Count - 1)
+            {
+                currentIndex++;
+                targetY = currentIndex * postHeight;
+                timeOnCurrentPost = 0f; // Reseta o cronômetro
+                Debug.Log("Tempo esgotado! Auto-scroll forçado.");
+            }
+        }
     }
 }
