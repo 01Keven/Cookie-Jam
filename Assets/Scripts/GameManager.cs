@@ -47,6 +47,11 @@ public class GameManager : MonoBehaviour
     [Tooltip("Tempo em segundos que a cutscene fica na tela antes de ir para a próxima fase")]
     public float tempoDaCutscene = 4f;
 
+    public float penalidadeAdMultiplier = 3f; 
+    
+    [Tooltip("Isso será controlado pelo seu script de Ads")]
+    public bool temAdNaTela = false;
+
     private void Awake()
     {
         Instance = this;
@@ -115,15 +120,25 @@ public class GameManager : MonoBehaviour
 
     public void ModifyLazy(float amount)
     {
-        if (jogoAcabou) return; // Evita que a preguiça continue aumentando após o fim do jogo
+        if (jogoAcabou) return;
 
+        float multiplicadorAtual = 1f;
+
+        // Se o celular estiver DESLIGADO e tiver um AD na tela, aplica a punição!
+        if (!PhoneController.Instance.isPhoneOn && temAdNaTela)
+        {
+            multiplicadorAtual = penalidadeAdMultiplier;
+            // Debug.Log("O player está tentando fugir do Ad! Acelerando preguiça...");
+        }
+
+        // Multiplica o valor recebido pela penalidade (se houver)
+        currentLazy += (amount * multiplicadorAtual);
+
+        // Verifica se a barra encheu (Game Over)
         if (currentLazy >= maxPreguica)
         {
             AtivarGameOver();
         }
-        
-        currentLazy += amount;
-        currentLazy = Mathf.Clamp(currentLazy, 0, maxLazy);
     }
 
     public void AtivarTarefa(string taskID)

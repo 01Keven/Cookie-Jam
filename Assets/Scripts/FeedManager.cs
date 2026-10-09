@@ -66,6 +66,8 @@ public class FeedManager : MonoBehaviour
 
     private void HandleSwipe()
     {
+        if (PhoneController.Instance != null && !PhoneController.Instance.isPhoneOn) return;
+
         if (isLocked) return;
 
         if (Mouse.current == null) return;
@@ -157,6 +159,7 @@ public class FeedManager : MonoBehaviour
 
     private void HandleAutoScroll()
     {
+        if (PhoneController.Instance != null && !PhoneController.Instance.isPhoneOn) return;
         // Se o feed estiver travado (Tarefa ou Ad), o cronômetro pausa para ser justo com o player
         if (isLocked) return;
 

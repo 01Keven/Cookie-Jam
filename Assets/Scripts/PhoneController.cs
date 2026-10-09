@@ -13,7 +13,12 @@ public class PhoneController : MonoBehaviour
     public GameObject blackScreen;
 
     public bool isPhoneOn = true;
-
+    
+    public void start()
+    {
+        if (screenContent != null) screenContent.SetActive(isPhoneOn);
+        if (blackScreen != null) blackScreen.SetActive(!isPhoneOn);
+    }
     void Awake()
     {
         Instance = this;

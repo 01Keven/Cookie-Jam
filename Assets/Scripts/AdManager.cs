@@ -38,6 +38,12 @@ public class AdManager : MonoBehaviour
 
     private IEnumerator AdRoutine(string eventID)
     {
+        // 1. AVISA O GAME MANAGER QUE O AD COMEÇOU (Ativa a punição se desligar a tela)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.temAdNaTela = true;
+        }
+
         int amount = Random.Range(minPopups, maxPopups + 1);
 
         for (int i = 0; i < amount; i++)
@@ -53,6 +59,12 @@ public class AdManager : MonoBehaviour
             if (p != null) Destroy(p);
         }
         activePopups.Clear();
+
+        // 2. AVISA O GAME MANAGER QUE O AD ACABOU PELO TEMPO (Remove a punição)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.temAdNaTela = false;
+        }
 
         feedManager.DestravarFeed(eventID);
     }
@@ -70,5 +82,17 @@ public class AdManager : MonoBehaviour
 
         newPopup.GetComponent<PopupAd>().Setup(phoneRect);
         activePopups.Add(newPopup);
+    }
+
+    // 3. NOVA FUNÇÃO: Chame esta função a partir do script do próprio botão de fechar do Ad (PopupAd)
+    public void RemoverPopupFechado(GameObject popup)
+    {
+        activePopups.Remove(popup);
+        
+        // Se o jogador foi rápido e fechou todos antes do tempo acabar, tira a punição!
+        if (activePopups.Count == 0 && GameManager.Instance != null)
+        {
+            GameManager.Instance.temAdNaTela = false;
+        }
     }
 }
