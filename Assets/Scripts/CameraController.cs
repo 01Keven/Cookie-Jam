@@ -2,41 +2,30 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    [Header("Referências")]
-    public Transform player;
-
-    [Header("Configurações da Tela")]
-    [Tooltip("A largura exata da visão da sua câmera em unidades da Unity. Altere até bater com as bordas.")]
-    public float roomWidth = 18f; 
+    [Header("Configurações do Alvo")]
+    [Tooltip("Arraste o objeto do Player para cá")]
+    public Transform target; 
     
-    [Tooltip("Quão rápido a câmera desliza para a nova tela. Coloque um número muito alto (ex: 100) para teleporte instantâneo.")]
-    public float transitionSpeed = 8f;
+    [Tooltip("Distância da câmera em relação ao player. O Z deve ser negativo!")]
+    public Vector3 offset = new Vector3(0f, 1.5f, -10f);
 
-    private float targetX;
+    [Header("Suavidade da Câmera")]
+    [Tooltip("Quanto menor o número, mais lenta e 'cinematográfica' é a perseguição")]
+    public float smoothSpeed = 5f;
 
-    void Start()
+    // Usamos LateUpdate em vez de Update para evitar tremedeiras (Jitter) na física
+    void LateUpdate()
     {
-        // Salva a posição inicial X da câmera como o primeiro alvo
-        targetX = transform.position.x;
-    }
+        // Se o player for destruído ou não estiver linkado, a câmera não faz nada
+        if (target == null) return;
 
-    void Update()
-    {
-        if (player == null) return;
+        // Calcula onde a câmera DEVERIA estar (Posição do Player + a distância do Offset)
+        Vector3 desiredPosition = target.position + offset;
 
-        // Se o player passou da borda DIREITA da tela atual
-        if (player.position.x > targetX + (roomWidth / 2f))
-        {
-            targetX += roomWidth; // Atualiza o alvo da câmera para a próxima tela à direita
-        }
-        // Se o player passou da borda ESQUERDA da tela atual
-        else if (player.position.x < targetX - (roomWidth / 2f))
-        {
-            targetX -= roomWidth; // Atualiza o alvo da câmera para a tela à esquerda
-        }
-
-        // Desliza a câmera suavemente até o novo targetX, mantendo o Y e Z originais
-        Vector3 targetPosition = new Vector3(targetX, transform.position.y, transform.position.z);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * transitionSpeed);
+        // Vector3.Lerp faz a câmera deslizar suavemente do ponto atual até o ponto desejado
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
+        
+        // Aplica a nova posição na câmera
+        transform.position = smoothedPosition;
     }
 }

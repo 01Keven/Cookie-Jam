@@ -6,6 +6,11 @@ public class PlayerController2D : MonoBehaviour
 {
     public float speed = 2f; 
     private Rigidbody2D rb;
+    
+    // Novas referências para Animação e Imagem
+    private Animator anim;
+    private SpriteRenderer spriteRenderer; 
+    
     private float moveDirection;
 
     [Header("Controles")]
@@ -29,6 +34,10 @@ public class PlayerController2D : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.freezeRotation = true; 
+        
+        // Pega os componentes que estão no mesmo objeto do Player
+        anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -36,10 +45,28 @@ public class PlayerController2D : MonoBehaviour
         // Lê o input como um número flutuante (-1 para esquerda, 1 para direita, 0 parado)
         moveDirection = moveAction.ReadValue<float>();
 
-        // Verifica se o player está tentando se mover (usamos Abs para ignorar se é esquerda ou direita)
-        if (Mathf.Abs(moveDirection) > 0.1f)
+        // 1. Lógica da Animação
+        bool estaAndando = Mathf.Abs(moveDirection) > 0.1f;
+        
+        // Envia o estado para o Animator (mantive o nome exatamente como você digitou)
+        if (anim != null)
         {
-            // O pulo do gato: Só pune o jogador se o GameManager existir e NÃO houver tarefa ativa
+            anim.SetBool("isRunnig", estaAndando);
+        }
+
+        // 2. Lógica para virar o rosto do personagem
+        if (moveDirection > 0.1f)
+        {
+            spriteRenderer.flipX = false; // Olha para a direita
+        }
+        else if (moveDirection < -0.1f)
+        {
+            spriteRenderer.flipX = true; // Olha para a esquerda
+        }
+
+        // 3. Sistema de Punição
+        if (estaAndando)
+        {
             if (GameManager.Instance != null && !GameManager.Instance.isTaskLocked)
             {
                 GameManager.Instance.ModifyLazy(walkPenaltyPerSecond * Time.deltaTime);

@@ -52,6 +52,12 @@ public class GameManager : MonoBehaviour
     [Tooltip("Isso será controlado pelo seu script de Ads")]
     public bool temAdNaTela = false;
 
+    [Header("Progressão e Fim de Jogo")]
+    [Tooltip("Coloque aqui o ID exato da última tarefa que finaliza a fase")]
+    
+
+    public Animator playerAnimator;
+
     private void Awake()
     {
         Instance = this;
@@ -180,6 +186,13 @@ public class GameManager : MonoBehaviour
     private void AtivarGameOver()
     {
         jogoAcabou = true;
+        
+        // 2. TOCA A ANIMAÇÃO DE DORMIR
+        if (playerAnimator != null)
+        {
+            playerAnimator.SetTrigger("Sleep");
+        }
+
         Time.timeScale = 0f; // Pausa o jogo
         
         if (gameOverPanel != null)

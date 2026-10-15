@@ -8,9 +8,12 @@ public class TaskInteractable : MonoBehaviour
     public string requiredTaskID;
     
     [Header("Controles")]
-    public InputAction interactAction; // Expõe a ação no Inspector
+    public InputAction interactAction; 
 
     private bool isPlayerInRange = false;
+    
+    // 1. NOVA VARIÁVEL: Para guardar o Animator do Player
+    private Animator playerAnim; 
 
     private void OnEnable()
     {
@@ -24,14 +27,17 @@ public class TaskInteractable : MonoBehaviour
 
     void Update()
     {
-        // Se o player estiver perto e a tecla for pressionada neste exato frame
         if (isPlayerInRange && interactAction.WasPressedThisFrame())
         {
-            // Verifica se esta é a tarefa que o jogo está pedindo agora
             if (GameManager.Instance.activeTaskID == requiredTaskID)
             {
+                // 2. TOCA A ANIMAÇÃO AQUI!
+                if (playerAnim != null) 
+                {
+                    playerAnim.SetTrigger("Interact");
+                }
+
                 GameManager.Instance.CompletarTarefaAtual();
-                
                 Debug.Log("Interação concluída!");
             }
             else
@@ -46,6 +52,8 @@ public class TaskInteractable : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             isPlayerInRange = true;
+            // 3. Pega o Animator do player quando ele entra na área
+            playerAnim = collision.GetComponent<Animator>(); 
         }
     }
 
@@ -54,6 +62,8 @@ public class TaskInteractable : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             isPlayerInRange = false;
+            // 4. Limpa a referência quando o player vai embora
+            playerAnim = null; 
         }
     }
 }
