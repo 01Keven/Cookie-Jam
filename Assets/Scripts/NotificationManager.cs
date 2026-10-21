@@ -81,14 +81,14 @@ public class NotificationManager : MonoBehaviour
 
     private IEnumerator MomEventRoutine()
     {
-        // 1. A notificação aparece e a mãe "chega" no cenário
+        //  A notificação aparece e a mãe "chega" no cenário
         if (momCharacterVisual != null) momCharacterVisual.SetActive(true);
         
-        // 2. O jogador tem X segundos para reagir
+        //  O jogador tem X segundos para reagir
         yield return new WaitForSeconds(reactionTime);
         notificationPanel.SetActive(false); // Esconde a notificação
 
-        // 3. O momento da verdade: A mãe checa se o celular está ligado
+        //  O momento da verdade: A mãe checa se o celular está ligado
         if (PhoneController.Instance.isPhoneOn)
         {
             // O JOGADOR FOI PEGO!
@@ -102,7 +102,7 @@ public class NotificationManager : MonoBehaviour
             Debug.Log("Ufa! A mãe achou que você estava dormindo.");
         }
 
-        // 4. A mãe vai embora, independentemente do resultado
+        // A mãe vai embora, independentemente do resultado
         yield return new WaitForSeconds(2f); // Ela fica um tempinho encarando
         if (momCharacterVisual != null) momCharacterVisual.SetActive(false);
     }

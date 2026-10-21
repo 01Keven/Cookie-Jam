@@ -2,9 +2,9 @@ using UnityEngine;
 
 public enum PostType 
 { 
-    Entertainment, // Baixa a preguiça (vídeos idiotas, cookies)
+    Entertainment, // Baixa a preguiça 
     TaskHint,      // Dá dicas do que fazer no mundo real
-    StressfulAd    // Aumenta a preguiça/estresse (opcional)
+    StressfulAd    // Aumenta a preguiça
 }
 
 [CreateAssetMenu(fileName = "New Post", menuName = "Doomscroll/Post Data")]

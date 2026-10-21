@@ -12,7 +12,6 @@ public class TaskInteractable : MonoBehaviour
 
     private bool isPlayerInRange = false;
     
-    // 1. NOVA VARIÁVEL: Para guardar o Animator do Player
     private Animator playerAnim; 
 
     private void OnEnable()
@@ -31,7 +30,7 @@ public class TaskInteractable : MonoBehaviour
         {
             if (GameManager.Instance.activeTaskID == requiredTaskID)
             {
-                // 2. TOCA A ANIMAÇÃO AQUI!
+            
                 if (playerAnim != null) 
                 {
                     playerAnim.SetTrigger("Interact");
@@ -52,7 +51,7 @@ public class TaskInteractable : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             isPlayerInRange = true;
-            // 3. Pega o Animator do player quando ele entra na área
+            // Pega o Animator do player quando ele entra na área
             playerAnim = collision.GetComponent<Animator>(); 
         }
     }
@@ -62,7 +61,7 @@ public class TaskInteractable : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             isPlayerInRange = false;
-            // 4. Limpa a referência quando o player vai embora
+            // Limpa a referência quando o player vai embora
             playerAnim = null; 
         }
     }

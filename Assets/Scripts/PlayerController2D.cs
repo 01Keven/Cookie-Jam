@@ -7,7 +7,6 @@ public class PlayerController2D : MonoBehaviour
     public float speed = 2f; 
     private Rigidbody2D rb;
     
-    // Novas referências para Animação e Imagem
     private Animator anim;
     private SpriteRenderer spriteRenderer; 
     
@@ -45,7 +44,7 @@ public class PlayerController2D : MonoBehaviour
         // Lê o input como um número flutuante (-1 para esquerda, 1 para direita, 0 parado)
         moveDirection = moveAction.ReadValue<float>();
 
-        // 1. Lógica da Animação
+        // Lógica da Animação
         bool estaAndando = Mathf.Abs(moveDirection) > 0.1f;
         
         // Envia o estado para o Animator (mantive o nome exatamente como você digitou)
@@ -54,7 +53,7 @@ public class PlayerController2D : MonoBehaviour
             anim.SetBool("isRunnig", estaAndando);
         }
 
-        // 2. Lógica para virar o rosto do personagem
+        // Lógica para virar o rosto do personagem
         if (moveDirection > 0.1f)
         {
             spriteRenderer.flipX = false; // Olha para a direita
@@ -64,7 +63,7 @@ public class PlayerController2D : MonoBehaviour
             spriteRenderer.flipX = true; // Olha para a esquerda
         }
 
-        // 3. Sistema de Punição
+        // Sistema de Punição
         if (estaAndando)
         {
             if (GameManager.Instance != null && !GameManager.Instance.isTaskLocked)

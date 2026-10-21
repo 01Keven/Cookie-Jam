@@ -31,16 +31,16 @@ public class PopupAd : MonoBehaviour, IDragHandler, IBeginDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        // 1. Salva a posição exata antes de tentar mover
+        // Salva a posição exata antes de tentar mover
         Vector2 oldPosition = rectTransform.anchoredPosition;
 
-        // 2. Tenta mover a imagem para onde o mouse está
+        // Tenta mover a imagem para onde o mouse está
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, eventData.position, eventData.pressEventCamera, out Vector2 localPointerPosition))
         {
             rectTransform.anchoredPosition = localPointerPosition + pointerOffset;
         }
 
-        // 3. Verifica se a nova posição fez a imagem bater no celular
+        // Verifica se a nova posição fez a imagem bater no celular
         if (phoneRect != null && CheckOverlap(rectTransform, phoneRect))
         {
             // Se bateu, desfaz o movimento (isso cria a sensação de colisão física sólida)
@@ -48,7 +48,7 @@ public class PopupAd : MonoBehaviour, IDragHandler, IBeginDragHandler
         }
     }
 
-    // Função matemática que cria dois quadrados precisos e checa se eles estão se tocando
+    // cria dois quadrados precisos e checa se eles estão se tocando
     private bool CheckOverlap(RectTransform rect1, RectTransform rect2)
     {
         Vector3[] corners1 = new Vector3[4];

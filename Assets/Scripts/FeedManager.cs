@@ -34,8 +34,6 @@ public class FeedManager : MonoBehaviour
 
     void Start()
     {
-        // Pega a altura real da máscara do celular. 
-        // Essa será a distância exata de cada post e de cada pulo.
         postHeight = phoneScreen.rect.height;
         GenerateFeed();
         
@@ -107,7 +105,7 @@ public class FeedManager : MonoBehaviour
 
     private void SnapToCurrentPost()
     {
-        // Move o container até travar perfeitamente no targetY
+        // move o container até travar perfeitamente no targetY
         Vector2 currentPos = contentContainer.anchoredPosition;
         currentPos.y = Mathf.Lerp(currentPos.y, targetY, Time.deltaTime * snapSpeed);
         contentContainer.anchoredPosition = currentPos;
@@ -118,7 +116,7 @@ public class FeedManager : MonoBehaviour
         HandleSwipe();
         SnapToCurrentPost();
         CheckCurrentPostForTask();
-        HandleAutoScroll(); // Chama a nova função aqui
+        HandleAutoScroll(); 
     }
 
     private void CheckCurrentPostForTask()
@@ -127,14 +125,13 @@ public class FeedManager : MonoBehaviour
 
         PostData currentData = availablePosts[currentIndex];
 
-        // 1. Checa se é uma Tarefa de Mundo Real
+        // Checa se é uma Tarefa de undo real
         if (currentData.type == PostType.TaskHint && !completedTasks.Contains(currentData.taskID))
         {
             isLocked = true;
             GameManager.Instance.AtivarTarefa(currentData.taskID);
         }
-        // 2. NOVO: Checa se é um Anúncio Estressante
-        // Usamos a palavra "Ad_" + o índice numérico para criar um ID único (ex: Ad_4) e não repetir se o jogador voltar o scroll
+        // NOVO: Checa se é um Anúncio estressante
         else if (currentData.type == PostType.StressfulAd && !completedTasks.Contains("Ad_" + currentIndex))
         {
             isLocked = true;
@@ -160,7 +157,7 @@ public class FeedManager : MonoBehaviour
     private void HandleAutoScroll()
     {
         if (PhoneController.Instance != null && !PhoneController.Instance.isPhoneOn) return;
-        // Se o feed estiver travado (Tarefa ou Ad), o cronômetro pausa para ser justo com o player
+        // Se o feed estiver travado, o cronômetro pausa para ser justo com o player
         if (isLocked) return;
 
         timeOnCurrentPost += Time.deltaTime;
